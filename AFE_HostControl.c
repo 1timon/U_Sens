@@ -1,3 +1,13 @@
+/** @file AFE_HostControl.c
+ *  @brief SPI interface for AFE4432 device
+ *
+ *         Host control functions for the AFE4432 device using SPI interface.
+ *         The functions are used to read and write registers of the AFE4432 device.
+ *
+ *  @author Timon Grosch
+ */
+
+
 #include "AFE_HostControl.h"
 #include <bcm2835.h>
 #include <stdint.h>
