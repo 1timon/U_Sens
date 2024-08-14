@@ -1,14 +1,5 @@
-/** @file AFE_HostControl.c
- *  @brief SPI interface for AFE4432 device
- *
- *         Host control functions for the AFE4432 device using SPI interface.
- *         The functions are used to read and write registers of the AFE4432 device.
- *
- *  @author Timon Grosch
- */
-
-
 #include "AFE_HostControl.h"
+#include "AFE_RegMap.h" // Include the register map header
 #include <bcm2835.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -20,6 +11,7 @@
 // Function prototypes
 void readFromAFE(uint8_t registerAddress, uint8_t* data);
 void writeToAFE(uint8_t registerAddress, uint32_t value);
+void setSPIRegReadMode(struct AFE_RegMap* AFE, bool enable);
 
 // Initialization function
 void initSPI() {
@@ -46,22 +38,11 @@ void closeSPI() {
     bcm2835_close();
 }
 
-// Function to read from AFE register
-void readFromAFE(uint8_t registerAddress, uint8_t* data) {
-    uint8_t tx_buffer[4] = {0};
-    
-    // Set the MSB to 1 for read operation
-    tx_buffer[0] = registerAddress | 0x80;
-
-    // Activate the chip select, send the address, and receive the data
-    bcm2835_spi_transfernb((char *)tx_buffer, (char *)data, 4);
-
-    // The data buffer now contains the 24-bit register data received from the AFE
-    // data[0] is D23-D16, data[1] is D15-D8, data[2] is D7-D0, and data[3] is garbage or zero
-}
-
 // Function to write to AFE register
 void writeToAFE(uint8_t registerAddress, uint32_t value) {
+    AFE_RegMap AFE;  // Assuming AFE_RegMap is defined and initialized properly
+    AFE_assignRegMap(&AFE);  // Initialize the register map
+
     uint8_t tx_buffer[4];
 
     // Set the MSB to 0 for write operation
@@ -74,18 +55,34 @@ void writeToAFE(uint8_t registerAddress, uint32_t value) {
     bcm2835_spi_writenb((char *)tx_buffer, 4);
 }
 
-// AFE_readReg function (unchanged)
+// Function to read from AFE register
+void readFromAFE(uint8_t registerAddress, uint8_t* data) {
+    AFE_RegMap AFE;  // Assuming AFE_RegMap is defined and initialized properly
+    AFE_assignRegMap(&AFE);  // Initialize the register map
+
+    uint8_t tx_buffer[4] = {0};
+
+    // Set the MSB to 1 for read operation
+    tx_buffer[0] = registerAddress | 0x80;
+
+    // Activate the chip select, send the address, and receive the data
+    bcm2835_spi_transfernb((char *)tx_buffer, (char *)data, 4);
+}
+
+// AFE_readReg function
 uint32_t AFE_readReg(uint8_t registerAddress) {
     uint32_t afeRegData;
 
-    AFE_writeReg(0x00, 0x000001); // Specific sequence required by AFE
-    readFromAFE(registerAddress, (uint8_t*)&afeRegData);   // To be updated by user based on their MCU
+    // Set SPI_REG_READ bit to 1 before reading
+    AFE_writeReg(0x00, 0x000001);
+    readFromAFE(registerAddress, (uint8_t*)&afeRegData);
+    // Set SPI_REG_READ bit to 0 after reading
     AFE_writeReg(0x00, 0x000000);
 
     return afeRegData;
 }
 
-// AFE_writeReg function (unchanged)
+// AFE_writeReg function
 void AFE_writeReg(uint8_t registerAddress, uint32_t value) {
-    writeToAFE(registerAddress, value);   // To be updated by user based on their MCU
+    writeToAFE(registerAddress, value);
 }
