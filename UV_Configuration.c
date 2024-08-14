@@ -15,20 +15,6 @@ void AFE_config_for_UVSpectroscopy() {
     AFE_clearPPM();  // Mandatory Step3
     AFE_initializeAFE();  // Mandatory Step4, Recommended to verify configurations in this functions
 
-    // // Check if GPIO 14 is high
-    // if (!bcm2835_init()) {
-    //     fprintf(stderr, "bcm2835_init failed\n");
-    //     exit(1);
-    // }
-
-    // bcm2835_gpio_fsel(GPIO_PIN, BCM2835_GPIO_FSEL_INPT);  // Set GPIO 14 as input
-
-    // if (bcm2835_gpio_lev(GPIO_PIN) == HIGH) {
-    //     printf("ADC is ready\n");
-    // } else {
-    //     printf("ADC is NOT ready\n");
-    // }
-
     // Continue with the configuration
     AFE_config_phaseTimingScheme(STAGGER);  // Phase timing scheme is set to Stagger Mode
     AFE_config_clockMode(CLK_MODE_INT);  // CLK_MODE_INT is used as clocking for AFE

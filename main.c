@@ -1,10 +1,10 @@
-/** @file HRM_Configuration_Example.c
- *  @brief An example configuration for HRM (Heart Rate Monitoring) based on AFE4432EVM
+/** @file main.c
+ *  @brief Configuration for UV absorption spectroscopy using AFE4432
  *
- *         This example shows how to use the driver to configure the AFE based on given hardware (i.e. AFE4432EVM).
- *         User can take this as a reference and modify based on their requirements such as LED-PD associations, clocking mode and PRF.
+ *         This is a main to interface the AFE4432 device with the Raspberry Pi using SPI interface.
+ *         The AFE4432 device is configured for UV absorption spectroscopy.
  *
- *  @author Prabin Yadav (yadav@ti.com)
+ *  @author Timon Grosch
  */
 
 #include "AFE_Functions_PPG.h"
@@ -13,27 +13,36 @@
 #include <bcm2835.h>
 #include <stdio.h>
 
-#define GPCLK0_PIN RPI_V2_GPIO_P1_07  // GPIO 4 (Pin 7 on the Raspberry Pi header)
 
+// Function to check if the AFE4432 device is alive
+int check_device_alive() {
+    uint32_t device_id = AFE_readReg(0x28);  // Read the Device ID register
+    if (device_id == 0x121) {  // Expected Device ID
+        printf("Device is alive. Device ID: 0x%x\n", device_id);
+        return 1;  // Device is alive
+    } else {
+        printf("Device not responding correctly. Read ID: 0x%x\n", device_id);
+        return 0;  // Device is not responding
+    }
+}
 
 int main() {
-    // Initialize the bcm2835 library
-    if (!bcm2835_init()) {
-        printf("bcm2835_init failed. Are you running as root?\n");
-        return 1;
-    }
-
-    // Initialize SPI
+    // Initialize the SPI interface
     initSPI();
 
-    printf("Starting UV Absorption Spectroscopy\n");
-    AFE_config_for_UVSpectroscopy();
-    printf("End UV Absorption Spectroscopy\n");
+    // Check if the device is alive
+    if (check_device_alive()) {
+        // Device is alive, proceed with further operations
+        printf("Starting UV Absorption Spectroscopy\n");
+        for (int i = 0; i < 10; i++) {
+            AFE_config_for_UVSpectroscopy();
+        }
+        printf("End UV Absorption Spectroscopy\n");
+    } else {
+        printf("Device did not respond correctly. Exiting...\n");
+    }
 
-    // Stop the clock output
-    stop_clock_output();
-
-    // Close SPI
+    // Close the SPI interface
     closeSPI();
 
     // Terminate the bcm2835 library

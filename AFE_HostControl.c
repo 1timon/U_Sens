@@ -64,22 +64,18 @@ void writeToAFE(uint8_t registerAddress, uint32_t value) {
     bcm2835_spi_writenb((char *)tx_buffer, 4);
 }
 
-// Updated AFE_readReg function
+// Function to read an AFE register and return the 24-bit value
 uint32_t AFE_readReg(uint8_t registerAddress) {
-    uint8_t buffer[4] = {0};
     uint32_t afeRegData = 0;
 
-    AFE_writeReg(0x00, 0x000001);  // Specific sequence required by AFE
-    readFromAFE(registerAddress, buffer);
-    AFE_writeReg(0x00, 0x000000);  // Clear the specific register
-
-    // Reconstruct the 24-bit data from the received buffer
-    afeRegData = (buffer[0] << 16) | (buffer[1] << 8) | buffer[2];
+    AFE_writeReg(0x00, 0x000001);
+    readFromAFE(registerAddress, (uint8_t*)&afeRegData);   // Reading data directly into afeRegData
+    AFE_writeReg(0x00, 0x000000);
 
     return afeRegData;
 }
 
-// Updated AFE_writeReg function
+// Function to write a 24-bit value to an AFE register
 void AFE_writeReg(uint8_t registerAddress, uint32_t value) {
-    writeToAFE(registerAddress, value);
+    writeToAFE(registerAddress, value);   // Writing the value directly
 }
